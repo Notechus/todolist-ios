@@ -7,14 +7,18 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     
-    var itemArray = ["Groceries", "Christmas Gifts"]
+    var itemArray: [TodoItem] = []
+    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        self.loadItems()
     }
     
     override func didReceiveMemoryWarning() {
@@ -27,17 +31,18 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: K.TodoList.cellName, for: indexPath)
+        let item = itemArray[indexPath.row]
         
-        cell.textLabel?.text = itemArray[indexPath.row]
+        cell.textLabel?.text = item.title
+        cell.accessoryType = item.done ? .checkmark : .none
         
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        let cell = tableView.cellForRow(at: indexPath)
-        cell?.accessoryType =  cell?.accessoryType == .checkmark ? .none : .checkmark
-        
+        self.saveItems()
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -49,7 +54,11 @@ class TodoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add", style: .default) { (alertAction) in
             if let todo = textField.text {
                 if todo != "" {
-                    self.itemArray.append(textField.text!)
+                    let newItem = TodoItem(context: self.context)
+                    newItem.title = textField.text!
+                    
+                    self.itemArray.append(newItem)
+                    self.saveItems()
                     self.tableView.reloadData()
                 }
             }
@@ -66,4 +75,41 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+}
+
+// MARK: - Core Data
+
+extension TodoListViewController {
+    func saveItems() {
+        do {
+            try context.save()
+        } catch {
+            print("Error saving context \(error)")
+        }
+        self.tableView.reloadData()
+    }
+    
+    func loadItems(request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()) {
+        let request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+        do {
+            self.itemArray = try context.fetch(request)
+        }catch {
+            print("Error fetching items \(error)")
+        }
+    }
+}
+
+// MARK: - Searching
+
+extension TodoListViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+        
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        self.loadItems(request: request)
+    }
+
 }
