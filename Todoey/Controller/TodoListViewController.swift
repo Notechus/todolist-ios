@@ -65,6 +65,7 @@ class TodoListViewController: UITableViewController {
             }
             
         }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
         
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Type new item"
@@ -72,6 +73,7 @@ class TodoListViewController: UITableViewController {
         }
         
         alert.addAction(action)
+        alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
     }

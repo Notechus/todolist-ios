@@ -54,11 +54,14 @@ class CategoryViewController: UITableViewController {
             }
         }
         
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Type category name"
             textField = alertTextField
         }
         alert.addAction(action)
+        alert.addAction(cancelAction)
         
         present(alert, animated: true, completion: nil)
     }
