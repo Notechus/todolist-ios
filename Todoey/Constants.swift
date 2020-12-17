@@ -18,10 +18,6 @@ struct K {
         static let categoryListKey = "CategoryList"
     }
     
-    struct Data {
-        static let coreDataModel = "TodoDataModel"
-    }
-    
     struct Navigation {
         static let categoryToItemsSegue = "goToItems"
     }
