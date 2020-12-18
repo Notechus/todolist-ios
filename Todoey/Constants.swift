@@ -8,6 +8,8 @@
 
 struct K {
     
+    static let cellName = "Cell"
+    
     struct TodoList {
         static let cellName = "ToDoItemCell"
         static let todoListKey = "ToDoList"
