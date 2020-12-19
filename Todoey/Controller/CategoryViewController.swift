@@ -8,14 +8,17 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
-   let realm = try! Realm()
-   var categories: Results<Category>?
+    let realm = try! Realm()
+    var categories: Results<Category>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.tableView.rowHeight = 70.0
         
         self.loadCategories()
     }
@@ -27,9 +30,16 @@ class CategoryViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: K.CategoryList.cellName, for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        if let currentCategory = categories?[indexPath.row] {
+            cell.textLabel?.text = currentCategory.name
+            cell.backgroundColor = UIColor(hexString: currentCategory.color)
+        } else {
+            cell.textLabel?.text = "No categories added"
+            cell.backgroundColor = UIColor.white
+        }
         
-        cell.textLabel?.text = categories?[indexPath.row].name ?? "No categories added"
+        
         
         return cell
     }
@@ -44,6 +54,7 @@ class CategoryViewController: UITableViewController {
                 if category != "" {
                     let newCategory = Category()
                     newCategory.name = category
+                    newCategory.color = UIColor.randomFlat().hexValue()
                     
                     self.save(category: newCategory)
                 }
@@ -67,6 +78,19 @@ class CategoryViewController: UITableViewController {
         
         if let indexPath = tableView.indexPathForSelectedRow {
             destinationVC.selectedCategory = categories?[indexPath.row]
+        }
+    }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let category = self.categories?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    self.realm.delete(category)
+                }
+            } catch {
+                print("Could not delete category, \(error)")
+            }
+            self.tableView.reloadData()
         }
     }
 }
